@@ -26,6 +26,11 @@ impl Tensor {
         self.data[self.flat_index(idx)]
     }
 
+    pub fn set(&mut self, idx: &[usize], value: f32) {
+        let i = self.flat_index(idx);
+        self.data[i] = value;
+    }
+
     pub fn flat_index(&self, idx: &[usize]) -> usize {
         assert_eq!(idx.len(), self.shape.len(), "dim mismatch");
         let mut flat = 0;
@@ -42,4 +47,11 @@ impl Tensor {
 fn main() {
     let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
     println!("t.get([0.0]) = {}", t.get(&[0, 0]));
+}
+
+#[test]
+fn test_set() {
+    let mut t = Tensor::zeros(&[2, 3]);
+    t.set(&[1, 2], 9.0);
+    assert_eq!(t.get(&[1, 2]), 9.0);
 }
