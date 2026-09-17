@@ -42,6 +42,11 @@ impl Tensor {
         Tensor::from_vec(data, &self.shape)
     }
 
+    pub fn mul_scalar(&self, scalar: f32) -> Tensor {
+        let data: Vec<f32> = self.data.iter().map(|a| a * scalar).collect();
+        Tensor::from_vec(data, &self.shape)
+    }
+
     pub fn flat_index(&self, idx: &[usize]) -> usize {
         assert_eq!(idx.len(), self.shape.len(), "dim mismatch");
         let mut flat = 0;
@@ -75,4 +80,11 @@ fn test_add() {
 
     let c = a.add(&b);
     assert_eq!(c.data, vec![11.0, 22.0, 33.0]);
+}
+
+#[test]
+fn test_mul_scalar() {
+    let a = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
+    let b = a.mul_scalar(3.0);
+    assert_eq!(b.data, vec![3.0, 6.0, 9.0, 12.0, 15.0, 18.0]);
 }
