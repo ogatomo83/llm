@@ -58,12 +58,32 @@ impl Tensor {
         }
         flat
     }
+
+    pub fn matmul(&self, other: &Tensor) -> Tensor {
+        assert_eq!(self.shape.len(), 2, "matmulは2次元のみ対応");
+        assert_eq!(other.shape.len(), 2, "matmulは2次元のみ対応");
+        let (m, k) = (self.shape[0], self.shape[1]);
+        let (k2, n) = (other.shape[0], other.shape[1]);
+        assert_eq!(k, k2, "行列のサイズが合わない");
+
+        let mut result = Tensor::zeros(&[m, n]);
+        for i in 0..m {
+            for j in 0..n {
+                let mut sum = 0.0;
+                for p in 0..k {
+                    sum += self.get(&[i, p]) * other.get(&[p, j]);
+                }
+                result.set(&[i, j], sum);
+            }
+        }
+        result
+    }
 }
 
 fn main() {
-    let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
-    let t2 = Tensor::from_vec(vec![2.0, 3.0, 4.0, 5.0, 6.0, 7.0], &[2, 3]);
-    t.add(&t2);
+    let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[2, 2]);
+    let t2 = Tensor::from_vec(vec![2.0, 3.0, 4.0, 5.0], &[2, 2]);
+    t.matmul(&t2);
 }
 
 #[test]
@@ -87,4 +107,12 @@ fn test_mul_scalar() {
     let a = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0], &[2, 3]);
     let b = a.mul_scalar(3.0);
     assert_eq!(b.data, vec![3.0, 6.0, 9.0, 12.0, 15.0, 18.0]);
+}
+
+#[test]
+fn test_matmul() {
+    let a = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[2, 2]);
+    let b = Tensor::from_vec(vec![5.0, 6.0, 7.0, 8.0], &[2, 2]);
+    let c = a.matmul(&b);
+    assert_eq!(c.data, vec![19.0, 22.0, 43.0, 50.0]);
 }
