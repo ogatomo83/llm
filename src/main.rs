@@ -78,6 +78,11 @@ impl Tensor {
         }
         result
     }
+
+    pub fn relu(&self) -> Tensor {
+        let data: Vec<f32> = self.data.iter().map(|&x| x.max(0.0)).collect();
+        Tensor::from_vec(data, &self.shape)
+    }
 }
 
 fn main() {
@@ -115,4 +120,11 @@ fn test_matmul() {
     let b = Tensor::from_vec(vec![5.0, 6.0, 7.0, 8.0], &[2, 2]);
     let c = a.matmul(&b);
     assert_eq!(c.data, vec![19.0, 22.0, 43.0, 50.0]);
+}
+
+#[test]
+fn test_relu() {
+    let a = Tensor::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0], &[5]);
+    let b = a.relu();
+    assert_eq!(b.data, vec![0.0, 0.0, 0.0, 1.0, 2.0]);
 }
