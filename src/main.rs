@@ -92,11 +92,26 @@ impl Tensor {
         let data: Vec<f32> = exp.iter().map(|x| x / sum).collect();
         Tensor::from_vec(data, &self.shape)
     }
+
+    pub fn layer_norm(&self) -> Tensor {
+        assert_eq!(self.shape.len(), 1, "layer_normは1次元のみ対応");
+        let n = self.data.len() as f32;
+        let mean: f32 = self.data.iter().sum::<f32>() / n;
+        let var: f32 = self.data.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / n;
+        let eps = 1e-5;
+        let data: Vec<f32> = self
+            .data
+            .iter()
+            .map(|x| (x - mean) / (var + eps).sqrt())
+            .collect();
+        Tensor::from_vec(data, &self.shape)
+    }
 }
 
 fn main() {
     let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[4]);
-    t.softmax();
+    let norm = t.layer_norm();
+    println!("{:?}", norm.data);
 }
 
 #[test]
@@ -142,4 +157,12 @@ fn test_softmax() {
     let a = Tensor::from_vec(vec![1.0, 1.0], &[2]);
     let b = a.softmax();
     assert_eq!(b.data, vec![0.5, 0.5]);
+}
+
+#[test]
+fn test_layer_norm() {
+    let a = Tensor::from_vec(vec![1.0, 2.0, 3.0], &[3]);
+    let b = a.layer_norm();
+    let mean: f32 = b.data.iter().sum::<f32>() / b.data.len() as f32;
+    assert!(mean.abs() < 1e-5);
 }
