@@ -83,12 +83,20 @@ impl Tensor {
         let data: Vec<f32> = self.data.iter().map(|&x| x.max(0.0)).collect();
         Tensor::from_vec(data, &self.shape)
     }
+
+    pub fn softmax(&self) -> Tensor {
+        assert_eq!(self.shape.len(), 1, "softmaxは1次元のみ対応");
+        let max = self.data.iter().cloned().fold(f32::MIN, f32::max);
+        let exp: Vec<f32> = self.data.iter().map(|x| (x - max).exp()).collect();
+        let sum: f32 = exp.iter().sum();
+        let data: Vec<f32> = exp.iter().map(|x| x / sum).collect();
+        Tensor::from_vec(data, &self.shape)
+    }
 }
 
 fn main() {
-    let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[2, 2]);
-    let t2 = Tensor::from_vec(vec![2.0, 3.0, 4.0, 5.0], &[2, 2]);
-    t.matmul(&t2);
+    let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[4]);
+    t.softmax();
 }
 
 #[test]
@@ -127,4 +135,11 @@ fn test_relu() {
     let a = Tensor::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0], &[5]);
     let b = a.relu();
     assert_eq!(b.data, vec![0.0, 0.0, 0.0, 1.0, 2.0]);
+}
+
+#[test]
+fn test_softmax() {
+    let a = Tensor::from_vec(vec![1.0, 1.0], &[2]);
+    let b = a.softmax();
+    assert_eq!(b.data, vec![0.5, 0.5]);
 }
