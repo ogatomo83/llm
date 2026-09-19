@@ -108,6 +108,18 @@ impl Tensor {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct Value {
+    pub data: f32,
+    pub grad: f32,
+}
+
+impl Value {
+    pub fn new(data: f32) -> Self {
+        Self { data, grad: 0.0 }
+    }
+}
+
 fn main() {
     let t = Tensor::from_vec(vec![1.0, 2.0, 3.0, 4.0], &[4]);
     let norm = t.layer_norm();
@@ -165,4 +177,11 @@ fn test_layer_norm() {
     let b = a.layer_norm();
     let mean: f32 = b.data.iter().sum::<f32>() / b.data.len() as f32;
     assert!(mean.abs() < 1e-5);
+}
+
+#[test]
+fn test_value_new() {
+    let a = Value::new(2.0);
+    assert_eq!(a.data, 2.0);
+    assert_eq!(a.grad, 0.0);
 }
