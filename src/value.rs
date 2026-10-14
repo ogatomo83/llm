@@ -2,17 +2,22 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct ValueData {
+pub struct ValueInner {
     pub data: f32,
     pub grad: f32,
+    pub prev: Vec<Value>,
 }
 
 #[derive(Debug, Clone)]
-pub struct Value(pub Rc<RefCell<ValueData>>);
+pub struct Value(pub Rc<RefCell<ValueInner>>);
 
 impl Value {
     pub fn new(data: f32) -> Self {
-        Value(Rc::new(RefCell::new(ValueData { data, grad: 0.0 })))
+        Value(Rc::new(RefCell::new(ValueInner {
+            data,
+            grad: 0.0,
+            prev: vec![],
+        })))
     }
 
     pub fn data(&self) -> f32 {
@@ -21,6 +26,12 @@ impl Value {
 
     pub fn grad(&self) -> f32 {
         self.0.borrow().grad
+    }
+
+    pub fn add(&self, other: &Value) -> Value {
+        let out = Value::new(self.data() + other.data());
+        out.0.borrow_mut().prev = vec![self.clone(), other.clone()];
+        out
     }
 }
 
@@ -37,4 +48,12 @@ fn test_value_shared() {
     let b = a.clone();
     b.0.borrow_mut().grad = 1.0;
     assert_eq!(a.grad(), 1.0);
+}
+
+#[test]
+fn test_value_add_forward() {
+    let a = Value::new(2.0);
+    let b = Value::new(3.0);
+    let c = a.add(&b);
+    assert_eq!(c.data(), 5.0);
 }
