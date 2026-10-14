@@ -33,6 +33,14 @@ impl Value {
         out.0.borrow_mut().prev = vec![self.clone(), other.clone()];
         out
     }
+
+    pub fn backward(&self) {
+        self.0.borrow_mut().grad += 1.0;
+        let prev = self.0.borrow().prev.clone();
+        for p in &prev {
+            p.0.borrow_mut().grad += 1.0;
+        }
+    }
 }
 
 #[test]
@@ -56,4 +64,15 @@ fn test_value_add_forward() {
     let b = Value::new(3.0);
     let c = a.add(&b);
     assert_eq!(c.data(), 5.0);
+}
+
+#[test]
+fn test_value_backwarc_add() {
+    let a = Value::new(2.0);
+    let b = Value::new(3.0);
+    let c = a.add(&b);
+    c.backward();
+    assert_eq!(c.grad(), 1.0);
+    assert_eq!(a.grad(), 1.0);
+    assert_eq!(b.grad(), 1.0);
 }
