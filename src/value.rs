@@ -43,7 +43,7 @@ fn test_value_new() {
 }
 
 #[test]
-fn test_value_add() {
+fn test_value_shared() {
     let a = Value::new(2.0);
     let b = a.clone();
     b.0.borrow_mut().grad = 1.0;
